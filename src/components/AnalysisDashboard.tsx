@@ -31,8 +31,14 @@ const Bar = ({ label, value }: { label: string; value: number }) => (
   </div>
 );
 
-export const AnalysisDashboard = ({ data }: { data: ResumeAnalysis }) => {
+interface DashboardProps {
+  data: ResumeAnalysis;
+  overrideOverall?: number;
+}
+
+export const AnalysisDashboard = ({ data, overrideOverall }: DashboardProps) => {
   const { basic_info, score, issues, improvements, hr_summary, role_match, ats_tips } = data;
+  const overall = overrideOverall ?? score.overall;
 
   return (
     <div className="space-y-8 animate-in fade-in duration-700">
