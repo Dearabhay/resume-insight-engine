@@ -31,8 +31,14 @@ const Bar = ({ label, value }: { label: string; value: number }) => (
   </div>
 );
 
-export const AnalysisDashboard = ({ data }: { data: ResumeAnalysis }) => {
+interface DashboardProps {
+  data: ResumeAnalysis;
+  overrideOverall?: number;
+}
+
+export const AnalysisDashboard = ({ data, overrideOverall }: DashboardProps) => {
   const { basic_info, score, issues, improvements, hr_summary, role_match, ats_tips } = data;
+  const overall = overrideOverall ?? score.overall;
 
   return (
     <div className="space-y-8 animate-in fade-in duration-700">
@@ -64,7 +70,7 @@ export const AnalysisDashboard = ({ data }: { data: ResumeAnalysis }) => {
 
         <Card className="glass-card p-6 flex flex-col items-center justify-center glow-primary">
           <div className="text-xs uppercase tracking-widest text-muted-foreground mb-3">Overall Score</div>
-          <ScoreRing value={score.overall} label="/ 100" />
+          <ScoreRing value={overall} label="/ 100" />
           <div className="w-full mt-6 space-y-3">
             <Bar label="ATS" value={score.ats_compatibility} />
             <Bar label="Clarity" value={score.clarity} />
