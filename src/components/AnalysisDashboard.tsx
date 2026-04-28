@@ -70,7 +70,7 @@ export const AnalysisDashboard = ({ data, overrideOverall }: DashboardProps) => 
 
         <Card className="glass-card p-6 flex flex-col items-center justify-center glow-primary">
           <div className="text-xs uppercase tracking-widest text-muted-foreground mb-3">Overall Score</div>
-          <ScoreRing value={score.overall} label="/ 100" />
+          <ScoreRing value={overall} label="/ 100" />
           <div className="w-full mt-6 space-y-3">
             <Bar label="ATS" value={score.ats_compatibility} />
             <Bar label="Clarity" value={score.clarity} />
