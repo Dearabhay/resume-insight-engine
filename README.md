@@ -13,17 +13,11 @@ ATS scoring · Bullet rewrites · Role-fit matching · HR-ready summary — in s
 [![Gemini](https://img.shields.io/badge/AI-Gemini%202.5%20Flash-4285F4?logo=google&logoColor=white&style=flat-square)](https://deepmind.google/technologies/gemini)
 
 <!-- Replace with your actual deployed URL -->
-**[🚀 Live Demo](https://your-deployment-url.vercel.app)** &nbsp;|&nbsp; **[📁 Source Code](https://github.com/Dearabhay/resume-insight-engine)**
+ **[📁 Source Code](https://github.com/Dearabhay/resume-insight-engine)**
 
 </div>
 
----
 
-## 📸 Preview
-
-> *(Add a screenshot or GIF of the app here — drag & drop into GitHub)*
-
----
 
 ## ✨ Features
 
