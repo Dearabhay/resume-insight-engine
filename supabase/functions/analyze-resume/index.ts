@@ -1,4 +1,4 @@
-// Resume analyzer edge function - uses Lovable AI Gateway with structured tool calling
+// Resume analyzer edge function — powered by Anthropic Claude API (claude-haiku-4-5)
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -8,113 +8,103 @@ const SYSTEM_PROMPT = `You are an expert HR recruiter, resume reviewer, and ATS 
 Analyze the given resume deeply and return structured JSON via the provided tool.
 Be specific and actionable. Base everything on the actual resume content provided.`;
 
+// Claude API tool definition (same schema, just different API format)
 const TOOL = {
-  type: "function",
-  function: {
-    name: "submit_resume_analysis",
-    description: "Submit a complete structured resume analysis.",
-    parameters: {
-      type: "object",
-      properties: {
-        basic_info: {
-          type: "object",
-          properties: {
-            name: { type: "string" },
-            email: { type: "string" },
-            phone: { type: "string" },
-            location: { type: "string" },
-            skills: { type: "array", items: { type: "string" } },
-            experience: {
-              type: "array",
-              items: {
-                type: "object",
-                properties: {
-                  role: { type: "string" },
-                  company: { type: "string" },
-                  duration: { type: "string" },
-                  highlights: { type: "array", items: { type: "string" } },
-                },
-                required: ["role", "company", "duration", "highlights"],
-                additionalProperties: false,
+  name: "submit_resume_analysis",
+  description: "Submit a complete structured resume analysis.",
+  input_schema: {
+    type: "object",
+    properties: {
+      basic_info: {
+        type: "object",
+        properties: {
+          name: { type: "string" },
+          email: { type: "string" },
+          phone: { type: "string" },
+          location: { type: "string" },
+          skills: { type: "array", items: { type: "string" } },
+          experience: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                role: { type: "string" },
+                company: { type: "string" },
+                duration: { type: "string" },
+                highlights: { type: "array", items: { type: "string" } },
               },
+              required: ["role", "company", "duration", "highlights"],
             },
-            education: {
-              type: "array",
-              items: {
-                type: "object",
-                properties: {
-                  degree: { type: "string" },
-                  institution: { type: "string" },
-                  year: { type: "string" },
-                },
-                required: ["degree", "institution", "year"],
-                additionalProperties: false,
+          },
+          education: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                degree: { type: "string" },
+                institution: { type: "string" },
+                year: { type: "string" },
               },
+              required: ["degree", "institution", "year"],
             },
           },
-          required: ["name", "email", "phone", "location", "skills", "experience", "education"],
-          additionalProperties: false,
         },
-        score: {
-          type: "object",
-          properties: {
-            overall: { type: "number", description: "0-100" },
-            ats_compatibility: { type: "number" },
-            clarity: { type: "number" },
-            impact: { type: "number" },
-            keyword_optimization: { type: "number" },
-          },
-          required: ["overall", "ats_compatibility", "clarity", "impact", "keyword_optimization"],
-          additionalProperties: false,
-        },
-        issues: {
-          type: "array",
-          items: {
-            type: "object",
-            properties: {
-              category: {
-                type: "string",
-                enum: ["grammar", "weak_bullets", "missing_keywords", "formatting", "quantification"],
-              },
-              description: { type: "string" },
-              severity: { type: "string", enum: ["low", "medium", "high"] },
-            },
-            required: ["category", "description", "severity"],
-            additionalProperties: false,
-          },
-        },
-        improvements: {
-          type: "array",
-          items: {
-            type: "object",
-            properties: {
-              type: { type: "string", enum: ["rewrite", "keyword", "formatting"] },
-              original: { type: "string" },
-              suggestion: { type: "string" },
-            },
-            required: ["type", "original", "suggestion"],
-            additionalProperties: false,
-          },
-        },
-        hr_summary: { type: "string", description: "4-5 line professional summary" },
-        role_match: {
-          type: "array",
-          items: {
-            type: "object",
-            properties: {
-              role: { type: "string" },
-              match_percentage: { type: "number" },
-              reason: { type: "string" },
-            },
-            required: ["role", "match_percentage", "reason"],
-            additionalProperties: false,
-          },
-        },
-        ats_tips: { type: "array", items: { type: "string" } },
+        required: ["name", "email", "phone", "location", "skills", "experience", "education"],
       },
-      required: ["basic_info", "score", "issues", "improvements", "hr_summary", "role_match", "ats_tips"],
-      additionalProperties: false,
+      score: {
+        type: "object",
+        properties: {
+          overall: { type: "number", description: "0-100" },
+          ats_compatibility: { type: "number", description: "0-100" },
+          clarity: { type: "number", description: "0-100" },
+          impact: { type: "number", description: "0-100" },
+          keyword_optimization: { type: "number", description: "0-100" },
+        },
+        required: ["overall", "ats_compatibility", "clarity", "impact", "keyword_optimization"],
+      },
+      issues: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            category: {
+              type: "string",
+              enum: ["grammar", "weak_bullets", "missing_keywords", "formatting", "quantification"],
+            },
+            description: { type: "string" },
+            severity: { type: "string", enum: ["low", "medium", "high"] },
+          },
+          required: ["category", "description", "severity"],
+        },
+      },
+      improvements: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            type: { type: "string", enum: ["rewrite", "keyword", "formatting"] },
+            original: { type: "string" },
+            suggestion: { type: "string" },
+          },
+          required: ["type", "original", "suggestion"],
+        },
+      },
+      hr_summary: { type: "string", description: "4-5 line professional summary from recruiter perspective" },
+      role_match: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            role: { type: "string" },
+            match_percentage: { type: "number" },
+            reason: { type: "string" },
+          },
+          required: ["role", "match_percentage", "reason"],
+        },
+      },
+      ats_tips: { type: "array", items: { type: "string" } },
     },
+    required: ["basic_info", "score", "issues", "improvements", "hr_summary", "role_match", "ats_tips"],
   },
 };
 
@@ -123,6 +113,7 @@ Deno.serve(async (req) => {
 
   try {
     const { resumeText } = await req.json();
+
     if (!resumeText || typeof resumeText !== "string" || resumeText.trim().length < 50) {
       return new Response(JSON.stringify({ error: "Resume text is too short or missing." }), {
         status: 400,
@@ -130,65 +121,84 @@ Deno.serve(async (req) => {
       });
     }
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY missing");
+    const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
+    if (!ANTHROPIC_API_KEY) throw new Error("ANTHROPIC_API_KEY is not set in Supabase secrets.");
 
-    const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const resp = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
+        "x-api-key": ANTHROPIC_API_KEY,
+        "anthropic-version": "2023-06-01",
+        "content-type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          { role: "system", content: SYSTEM_PROMPT },
-          { role: "user", content: `Analyze this resume:\n\n${resumeText.slice(0, 15000)}` },
-        ],
+        model: "claude-haiku-4-5",
+        max_tokens: 4096,
+        system: SYSTEM_PROMPT,
         tools: [TOOL],
-        tool_choice: { type: "function", function: { name: "submit_resume_analysis" } },
+        tool_choice: { type: "tool", name: "submit_resume_analysis" },
+        messages: [
+          {
+            role: "user",
+            content: `Analyze this resume:\n\n${resumeText.slice(0, 15000)}`,
+          },
+        ],
       }),
     });
 
     if (!resp.ok) {
+      const errText = await resp.text();
+      console.error("Claude API error:", resp.status, errText);
+
       if (resp.status === 429) {
-        return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again shortly." }), {
+        return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }), {
           status: 429,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      if (resp.status === 402) {
-        return new Response(JSON.stringify({ error: "AI credits exhausted. Add funds in Settings → Workspace → Usage." }), {
-          status: 402,
+      if (resp.status === 401) {
+        return new Response(JSON.stringify({ error: "Invalid API key. Check ANTHROPIC_API_KEY in Supabase secrets." }), {
+          status: 401,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      const t = await resp.text();
-      console.error("AI gateway error:", resp.status, t);
-      return new Response(JSON.stringify({ error: "AI gateway error" }), {
+
+      return new Response(JSON.stringify({ error: `Claude API error: ${resp.status}` }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     const data = await resp.json();
-    const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
-    if (!toolCall) {
-      return new Response(JSON.stringify({ error: "AI did not return structured output" }), {
+
+    // Claude returns tool_use block in content array
+    const toolUseBlock = data.content?.find(
+      (block: { type: string }) => block.type === "tool_use"
+    );
+
+    if (!toolUseBlock || !toolUseBlock.input) {
+      console.error("No tool_use block in Claude response:", JSON.stringify(data));
+      return new Response(JSON.stringify({ error: "Claude did not return structured output." }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const analysis = JSON.parse(toolCall.function.arguments);
+    // toolUseBlock.input is already a parsed object (not a string like OpenAI)
+    const analysis = toolUseBlock.input;
+
     return new Response(JSON.stringify({ analysis }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
+
   } catch (e) {
     console.error("analyze-resume error:", e);
-    return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }),
+      {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }
+    );
   }
 });
